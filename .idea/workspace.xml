@@ -455,8 +455,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/cvcv.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+            <state relative-caret-position="351">
+              <caret line="16" column="88" lean-forward="true" selection-start-line="16" selection-start-column="88" selection-end-line="16" selection-end-column="88" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
               </folding>
@@ -570,7 +570,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-6" y="-6" width="1381" height="885" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16099773" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -616,8 +615,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/cvcv.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="8" column="30" selection-start-line="8" selection-start-column="30" selection-end-line="8" selection-end-column="30" />
+        <state relative-caret-position="351">
+          <caret line="16" column="88" lean-forward="true" selection-start-line="16" selection-start-column="88" selection-end-line="16" selection-end-column="88" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
           </folding>
