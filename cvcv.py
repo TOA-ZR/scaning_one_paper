@@ -5,7 +5,7 @@ import math
 
 
 #load an image
-path = r"C:\Users\jo\Desktop\Pic\IMG_9528.JPG"
+path = r"C:\Users\jo\Desktop\Pic\IMG_9374.JPG"
 #path = r"20131030153346984.jpg"
 imgcol=cv2.imread(path)
 #meanshift方法 有点慢
@@ -102,7 +102,29 @@ if len(cnts) > 0:
 
         #area
                         cv2.imshow('output', drawing)
-               # cv2.imshow('input', drawing)
+                        cv2.imwrite("output.jpg", drawing)
+                        cv2.imshow('input', drawing)
+                        # TODO 把截图画出来 变成四边形
+
+                        docCnt = approxsub
+                        newimg = imgcol.copy()
+                        # draw the corner on the original image
+                        for i in docCnt:
+                                # circle函数为在图像上作图，新建了一个图像用来演示四角选取
+                                cv2.circle(newimg, (i[0][0], i[0][1]), 50, (0, 255, 0), -1)
+                                cv2.imshow('newimg', newimg)
+                                cv2.imwrite('newimg.jpg', newimg)
+                            
+                        # map the image
+                        """
+
+                        pts2 = np.float32([[0, 0], [400, 0], [0, 200], [400, 200]])
+                        for i in docCnt:
+                                pts1.append([i[0][0], i[0][1]])
+
+                                M = cv2.getPerspectiveTransform(pts1, pts2)
+                                result = cv2.warpPerspective(drawing2, M, (0, 0))
+                        """
 
 
 
