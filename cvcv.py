@@ -2,47 +2,110 @@ import cv2
 import numpy as np
 import math
 
+
+
 #load an image
-path = r"C:\Users\jo\Desktop\Pic\IMG_9374.JPG"
-img_color=cv2.imread(path)
-img_colorP = np.copy(img_color)
-img_gray = cv2.imread(path,0)
-#img_gray = cv2.cvtColor(img_color,cv2.COLOR_BGR2GRAY)
-cv2.imshow("img_gray",img_gray)
+path = r"C:\Users\jo\Desktop\Pic\IMG_9528.JPG"
+#path = r"20131030153346984.jpg"
+imgcol=cv2.imread(path)
+#meanshift方法 有点慢
+#imgcol = cv2.pyrMeanShiftFiltering(imgcol, 25, 10)
+img_colorP = np.copy(imgcol)
+#imgray = cv2.imread(path,0)
+drawing = np.zeros(imgcol.shape,np.uint8)     # Image to draw the contours
+imgray = cv2.cvtColor(imgcol,cv2.COLOR_BGR2GRAY)
+cv2.imshow("imgcol",imgcol)
+cv2.imshow("img_gray",imgray)
 #check if img_gray is loaded fine
-if img_gray is None:
+if imgray is None:
         print("Error opening image!")
+
+
 
 """
 preprocessing
 1. Reduce noise by smoothing the image (Gaussian blur)
 2. Fill holes and reduce clutter by morphological operation
-3. Adaptive Thresholding after 
+3. Adaptive Thresholding after morphological operation 
 """
+""" RGB2HSV
+imgHSV = cv2.cvtColor(imgcol, cv2.COLOR_BGR2HSV)
+imgbinar = cv2.inRange(imgHSV, (0, 0, 200), (180, 50, 255))
+cv2.imshow("imgbinar",imgbinar)
+"""
+
 #1. Gaussian Blus
-img_gauss= cv2.GaussianBlur(img_gray,(5,5),0) #TODO
+
+imgblurred= cv2.GaussianBlur(imgray,(3,3),0) #TODO
+#imgblurred=cv2.copyMakeBorder(imgblurred,5,5,5,5,cv2.BORDER_CONSTANT,value=(255,255,255)) #TODO 可以去掉 画框框的
+#imgblur= cv2.medianBlur(imgray,5)
+
+#TODO 用原来的adaptive试一试
+imgthresh = cv2.adaptiveThreshold(imgblurred,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,51,2)
+#ret, imgthresh = cv2.threshold(imgblurred, 0, 200, cv2.THRESH_OTSU + cv2.THRESH_BINARY_INV)
+#ret,thresh=cv2.threshold(imgblurred,127,255,0)
+cv2.imshow('thresh', imgthresh)
+##TODO 图像增强，把边连起来，看mv的ppt
+#imgconn=cv2.connectedComponents(imgthresh)
+
+
 #2. Morphological Operation
-kernel = np.ones((5,5),np.uint8) #TODO
-img_morphology = cv2.morphologyEx( img_gauss, cv2.MORPH_CLOSE, kernel) # input: binary image
+#kernel = np.ones((5,5),np.uint8) #TODO
+#imgmorpho = cv2.morphologyEx( imgthresh, cv2.MORPH_CLOSE, kernel) # input: binary image
+#cv2.imshow("imgmorpho",imgmorpho)
 #3. Adaptive Thresholding after Filtering
-img_binary = cv2.adaptiveThreshold(img_morphology,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,5,5)#TODO
+#img_binary = cv2.adaptiveThreshold(img_morphology,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,5,5)#TODO
 
 
-"""
-paper detection algorithm
+
+""" paper detection algorithm
 1. find border with Canny Detector
 2. find contours in the segmented binary image
-3. HoughLines to find contours
-"""
-#1 Canny Detector
-img_canny=cv2.Canny(img_binary, 200, 255) #input gray image
-cv2.imshow("canny",img_canny)
+3. approxPolyDP """
+
+#1. Canny Detector
+thresh = 10
+edges=cv2.Canny(imgthresh, thresh, thresh*10) #input gray image
+cv2.imshow("canny",edges)
 #2. find_Contours
-img_contour, contours, hierarchy = cv2.findContours(img_canny,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-cv2.drawContours(img_gray,contours,-1,(0,255,0),3) #直接在原图上修改
-cv2.imshow('img_contour.jpg',img_gray)
+#Paramters of cv2.findContours Function in  opencv2 and opencv3 are different
+#img_contour,contours, hierarchy= cv2.findContours( img_canny.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+img_contour,contours, hierarchy= cv2.findContours( edges,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 cv2.imshow('img_contour', img_contour)
-cv2.imwrite("result.jpg",img_gray)
+cnts = contours[0]
+#approxPoly contour
+epsilon = 0.1*cv2.arcLength(cnts,True)
+approx = cv2.approxPolyDP(cnts,epsilon,True)
+img_contour=cv2.drawContours(img_contour, approx, -1, (0, 255, 0), 3)
+cv2.imshow("approx_color", img_contour)
+#draw contour
+img_gray=cv2.drawContours(imgray,approx,0,(0,255,0),3)
+cv2.imshow('approx', img_gray)
+#get convexhull
+area = cv2.contourArea(cnts)
+perimeter = cv2.arcLength(cnts,True)
+hull = cv2.convexHull(cnts)
+#get corners
+# 确保至少有一个轮廓被找到
+if len(cnts) > 0:
+#draw convexhull
+        for cnt in contours:
+                hull = cv2.convexHull(cnt)
+                area = cv2.contourArea(cnt)
+                perimeter = cv2.arcLength(cnt, True)
+                approxsub = cv2.approxPolyDP(cnt, 0.02 * perimeter, True)
+                corners = len(approxsub)
+        # filter of extremely unlikely contours
+                if (area >= 500 and perimeter > 800 and len(approxsub) == 4 ): #TODO
+                        cv2.drawContours(drawing, [cnt], 0, (0, 255, 0), 2)  # draw contours in green color
+                        cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 2)  # draw contours in red color
+
+        #area
+                        cv2.imshow('output', drawing)
+               # cv2.imshow('input', drawing)
+
+
+
 
 
 # Wait and Exit
