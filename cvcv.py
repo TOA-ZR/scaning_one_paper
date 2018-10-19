@@ -11,11 +11,14 @@ imgcol=cv2.imread(path)
 #meanshift方法 有点慢
 #imgcol = cv2.pyrMeanShiftFiltering(imgcol, 25, 10)
 img_colorP = np.copy(imgcol)
+height,width = imgcol.shape[:2]
+
 #imgray = cv2.imread(path,0)
 drawing = np.zeros(imgcol.shape,np.uint8)     # Image to draw the contours
+drawing2 = np.zeros(imgcol.shape,np.uint8)
 imgray = cv2.cvtColor(imgcol,cv2.COLOR_BGR2GRAY)
-cv2.imshow("imgcol",imgcol)
-cv2.imshow("img_gray",imgray)
+#cv2.imshow("imgcol",imgcol)
+#cv2.imshow("img_gray",imgray)
 #check if img_gray is loaded fine
 if imgray is None:
         print("Error opening image!")
@@ -44,7 +47,7 @@ imgblurred= cv2.GaussianBlur(imgray,(3,3),0) #TODO
 imgthresh = cv2.adaptiveThreshold(imgblurred,255,cv2.ADAPTIVE_THRESH_MEAN_C,cv2.THRESH_BINARY,51,2)
 #ret, imgthresh = cv2.threshold(imgblurred, 0, 200, cv2.THRESH_OTSU + cv2.THRESH_BINARY_INV)
 #ret,thresh=cv2.threshold(imgblurred,127,255,0)
-cv2.imshow('thresh', imgthresh)
+#cv2.imshow('thresh', imgthresh)
 ##TODO 图像增强，把边连起来，看mv的ppt
 #imgconn=cv2.connectedComponents(imgthresh)
 
@@ -66,21 +69,21 @@ cv2.imshow('thresh', imgthresh)
 #1. Canny Detector
 thresh = 10
 edges=cv2.Canny(imgthresh, thresh, thresh*10) #input gray image
-cv2.imshow("canny",edges)
+#cv2.imshow("canny",edges)
 #2. find_Contours
 #Paramters of cv2.findContours Function in  opencv2 and opencv3 are different
 #img_contour,contours, hierarchy= cv2.findContours( img_canny.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 img_contour,contours, hierarchy= cv2.findContours( edges,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-cv2.imshow('img_contour', img_contour)
+#cv2.imshow('img_contour', img_contour)
 cnts = contours[0]
 #approxPoly contour
 epsilon = 0.1*cv2.arcLength(cnts,True)
 approx = cv2.approxPolyDP(cnts,epsilon,True)
 img_contour=cv2.drawContours(img_contour, approx, -1, (0, 255, 0), 3)
-cv2.imshow("approx_color", img_contour)
+#cv2.imshow("approx_color", img_contour)
 #draw contour
 img_gray=cv2.drawContours(imgray,approx,0,(0,255,0),3)
-cv2.imshow('approx', img_gray)
+#cv2.imshow('approx', img_gray)
 #get convexhull
 area = cv2.contourArea(cnts)
 perimeter = cv2.arcLength(cnts,True)
@@ -101,9 +104,14 @@ if len(cnts) > 0:
                         cv2.drawContours(drawing, [hull], 0, (0, 0, 255), 2)  # draw contours in red color
 
         #area
+                        #cv2.namedWindow("input", 0);
+                        #cv2.resizeWindow("input", 4032, 3024);
+                        #cv2.namedWindow("output", 0);
+                       # cv2.resizeWindow("output", 4032, 3024);
                         cv2.imshow('output', drawing)
                         cv2.imwrite("output.jpg", drawing)
                         cv2.imshow('input', drawing)
+
                         # TODO 把截图画出来 变成四边形
 
                         docCnt = approxsub
@@ -112,9 +120,11 @@ if len(cnts) > 0:
                         for i in docCnt:
                                 # circle函数为在图像上作图，新建了一个图像用来演示四角选取
                                 cv2.circle(newimg, (i[0][0], i[0][1]), 50, (0, 255, 0), -1)
+                               # cv2.namedWindow("newimg", 0);
+                               # cv2.resizeWindow("newimg", 4032, 3024);
                                 cv2.imshow('newimg', newimg)
                                 cv2.imwrite('newimg.jpg', newimg)
-                            
+
                         # map the image
                         """
 
@@ -125,6 +135,28 @@ if len(cnts) > 0:
                                 M = cv2.getPerspectiveTransform(pts1, pts2)
                                 result = cv2.warpPerspective(drawing2, M, (0, 0))
                         """
+                        #TODO 把坐标按照顺序放到pts1里，然后用M来perspective 完全的是语法问题了
+                        m=0
+                        a = []
+                        for i in docCnt:
+                                print(i)
+                                a.append(i)
+                             #   a[m]=i
+                              #  m=m+1
+                        #print(a)
+                        pts1 = np.float32(a)
+                        print(a)
+                        #pts2 = np.float32([[0, 0], [200, 0], [0, 400], [200, 400]])
+                        pts2 = np.float32([[width, 0], [0, 0], [0, height], [width, height]])
+
+                        M = cv2.getPerspectiveTransform(pts1, pts2)
+                        #result = cv2.warpPerspective(imgcol, M,(200,400))
+                        result = cv2.warpPerspective(imgcol, M, (width, height))
+                        cv2.imshow("result",result)
+                        cv2.imwrite("result.jpg",result)
+
+
+
 
 
 
